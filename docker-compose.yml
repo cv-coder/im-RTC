@@ -1,0 +1,74 @@
+version: "3.8"
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "naQRLdDPbGv2j7PX_"
+      MYSQL_DATABASE: "im_platform"
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:6.2-alpine
+    command: ["redis-server", "--requirepass", "PmEpfRjpBnTN6CgW"]
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: "admin"
+      MINIO_ROOT_PASSWORD: "3fBSt6AkgFuD77D6"
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+  coturn:
+    image: instrumentisto/coturn
+    restart: unless-stopped
+    command:
+      [
+        "turnserver",
+        "-n",
+        "--lt-cred-mech",
+        "--no-multicast-peers",
+        "--user=admin:UrHHKNvE7nFvBTMV",
+        "--realm=www.boxim.online",
+        "--listening-port=3478",
+        "--external-ip=127.0.0.1",
+      ]
+    ports:
+      - "3478:3478"
+      - "3478:3478/udp"
+
+  im-platform:
+    build:
+      context: .
+      dockerfile: im-platform/Dockerfile
+    depends_on:
+      - mysql
+      - redis
+      - minio
+      - coturn
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./im-platform/src/main/resources/application-prod.yml:/config/application-prod.yml:ro
+
+volumes:
+  mysql-data:
+  redis-data:
+  minio-data:
