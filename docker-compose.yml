@@ -52,21 +52,21 @@ services:
       - "3478:3478"
       - "3478:3478/udp"
 
-  im-platform:
-    build:
-      context: .
-      dockerfile: im-platform/Dockerfile
-    depends_on:
-      - mysql
-      - redis
-      - minio
-      - coturn
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./im-platform/src/main/resources/application-prod.yml:/config/application-prod.yml:ro
+  # im-platform:
+  #   build:
+  #     context: .
+  #     dockerfile: im-platform/Dockerfile
+  #   depends_on:
+  #     - mysql
+  #     - redis
+  #     - minio
+  #     - coturn
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=prod
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./im-platform/src/main/resources/application-prod.yml:/config/application-prod.yml:ro
 
 volumes:
   mysql-data:
