@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-IMPlatformApp<im-platform>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.bx.implatform.IMPlatformApp",
+      "projectName": "im-platform",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
