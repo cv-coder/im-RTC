@@ -90,8 +90,8 @@ java -jar im-server/target/im-server.jar
 
 或使用 IDE 分别运行：
 
-- 运行 `com.bx.implatform.IMPlatformApp`（`im-platform`）
-- 运行 `com.bx.imserver.IMServerApp`（`im-server`）
+- 运行 `com.lwf.implatform.IMPlatformApp`（`im-platform`）
+- 运行 `com.lwf.imserver.IMServerApp`（`im-server`）
 
 3. 前端运行
 

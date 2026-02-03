@@ -5,8 +5,19 @@
       "name": "Spring Boot-IMPlatformApp<im-platform>",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "mainClass": "com.bx.implatform.IMPlatformApp",
+      "mainClass": "com.lwf.implatform.IMPlatformApp",
       "projectName": "im-platform",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9511 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=im-platform"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-IMServerApp<im-server>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.lwf.imserver.IMServerApp",
+      "projectName": "im-server",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
     }
