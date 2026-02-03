@@ -35,34 +35,97 @@ java -jar ./im-server/target/im-server.jar
 3.启动前端web
 ```
 cd im-web
+## **项目概览**
+
+这是一个即时通讯（IM）参考实现，包含业务平台、消息推送服务、客户端 SDK 以及前端示例：
+
+- **im-platform**：业务平台服务，处理 HTTP 接口与业务逻辑（登录、关系、消息入库等）。
+- **im-server**：消息推送服务（基于 WebSocket/TCP），负责将消息下发到在线用户。推送与平台解耦，可以水平扩容。
+- **im-client**：Java 客户端/SDK（可集成到其他服务用于与 im-server 通信）。
+- **im-common**：公共库，后端模块的公共代码与工具。
+- **im-web**：Web 前端示例。
+- **im-uniapp**：移动端 uniapp 示例，可构建为 App/H5/小程序。
+
+更多模块目录与源码请查看仓库对应路径。
+
+## **设计要点**
+
+- 消息队列使用 Redis list 实现跨节点消息分发：每个 im-server 维护并消费属于自身的 Redis queue（例如 `im:unread:${serverId}`）。
+- im-platform 记录用户与 im-server 的绑定，当发送消息时将消息推入目标 im-server 对应的队列，由目标节点拉取并下发。
+- JWT 用于鉴权，`im-platform` 与 `im-server` 使用一致的 secret（见配置）。
+
+## **环境与依赖**
+
+- JDK 17
+- Maven 3.6+（或 3.9.x）
+- MySQL 8.0（示例使用数据库 schema 文件在仓库 `db` 目录）
+- Redis 6.x
+- Node.js v18+（用于前端构建）
+- 可选：MinIO（用于文件/头像存储，参考 `im-platform` 的 MinIO 配置）
+
+数据库脚本：请查看 [db/im-platform.sql](db/im-platform.sql#L1)
+
+## **配置（关键文件）**
+
+- `im-platform` 配置：[im-platform/src/main/resources/application.yml](im-platform/src/main/resources/application.yml#L1)（默认 HTTP 端口 `8888`）。
+- `im-server` 配置：[im-server/src/main/resources/application.yml](im-server/src/main/resources/application.yml#L1)（默认 WebSocket 端口 `8878`，TCP 可选）。
+
+注意：`im-platform` 与 `im-server` 的 JWT `accessToken.secret` 必须保持一致，以保证 token 在两者间可验证。
+
+## **快速启动（本地开发）**
+
+1. 准备数据库与配置
+
+- 启动 MySQL，并执行 `db/im-platform.sql` 创建所需表与初始数据。
+
+2. 后端构建并运行
+
+```bash
+mvn -T 1C -f pom.xml clean package -DskipTests
+# 在 IDE 中直接运行主类也可：im-platform/src/main/java/.../IMPlatformApp.java
+# 或使用 jar 运行（jar 路径以实际构建产物为准）
+java -jar im-platform/target/im-platform.jar
+java -jar im-server/target/im-server.jar
+```
+
+或使用 IDE 分别运行：
+
+- 运行 `com.bx.implatform.IMPlatformApp`（`im-platform`）
+- 运行 `com.bx.imserver.IMServerApp`（`im-server`）
+
+3. 前端运行
+
+- Web 示例：
+
+```bash
+cd im-web
 npm install
 npm run serve
+# 默认访问 http://localhost:8080
 ```
-访问 http://localhost:8080
 
-4.启动uniapp-h5
-将im-uniapp目录导入HBuilderX,点击菜单"运行"->"开发环境-h5"
-访问 http://localhost:5173
+- UniApp（H5）：将 `im-uniapp` 导入 HBuilderX，选择 H5 运行或使用本地 vite（若已配置）。默认 dev 地址示例：`http://localhost:5173`。
 
-#### 接入消息推送
-对消息推送模块进行了剥离和封装
+4. 使用 Docker Compose（可选）
 
-#### 界面截图
-私聊：
-![输入图片说明](%E6%88%AA%E5%9B%BE/web/%E7%A7%81%E8%81%8A.jpg)
+仓库根目录提供 `docker-compose.yml`，可以用于启动依赖服务（MySQL/Redis/MinIO）和镜像（若已构建）。
 
-群聊：
-![输入图片说明](%E6%88%AA%E5%9B%BE/web/%E7%BE%A4%E8%81%8A.jpg)
+```bash
+docker-compose up -d
+```
 
-群通话：
-![输入图片说明](%E6%88%AA%E5%9B%BE/web/%E5%A4%9A%E4%BA%BA%E9%80%9A%E8%AF%9D.jpg)
+## **常见操作与说明**
 
-好友列表：
-![输入图片说明](%E6%88%AA%E5%9B%BE/web/%E5%A5%BD%E5%8F%8B.jpg)
+- 日志位置：各模块遵循 Spring Boot 日志配置（`logback.xml`）。
+- 静态资源与截图位于仓库 `截图/` 目录，用于文档展示。
+- 若需要切换环境（dev/test/prod），请修改 `spring.profiles.active` 或使用 `--spring.profiles.active=prod` 启动参数，配置文件位于对应模块的 `src/main/resources` 下。
 
-群列表：
-![输入图片说明](%E6%88%AA%E5%9B%BE/web/%E7%BE%A4%E5%88%97%E8%A1%A8.jpg)
+## **贡献与许可**
 
-移动端APP:
-![输入图片说明](%E6%88%AA%E5%9B%BE/app/1.png)  
-  
+- 欢迎提交 Issue 与 PR。请遵循仓库代码风格与模块边界。
+- 项目采用仓库根目录的 LICENSE（请查看 LICENSE 文件）。
+
+----
+
+如果你希望我把 README 中的某一部分扩展为详细的部署脚本（例如 Dockerfile 镜像构建、Kubernetes 清单或 CI/CD 示例），告诉我想要的目标平台和运行环境，我可以继续补充示例。 
+
