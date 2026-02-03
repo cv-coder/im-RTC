@@ -127,5 +127,4 @@ docker-compose up -d
 
 ----
 
-如果你希望我把 README 中的某一部分扩展为详细的部署脚本（例如 Dockerfile 镜像构建、Kubernetes 清单或 CI/CD 示例），告诉我想要的目标平台和运行环境，我可以继续补充示例。 
 
