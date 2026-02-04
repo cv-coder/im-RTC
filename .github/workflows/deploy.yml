@@ -47,10 +47,10 @@ jobs:
       - name: Prepare server directories
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            mkdir -p /opt/lwf-im/im-platform
-            mkdir -p /opt/lwf-im/im-server
-            mkdir -p /opt/lwf-im/logs
-            mkdir -p /opt/lwf-im/config
+            mkdir -p /www/wwwroot/lwf-im/im-platform
+            mkdir -p /www/wwwroot/lwf-im/im-server
+            mkdir -p /www/wwwroot/lwf-im/logs
+            mkdir -p /www/wwwroot/lwf-im/config
           EOF
 
       # 第六步：部署 im-platform 服务
