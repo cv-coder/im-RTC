@@ -1,0 +1,109 @@
+# 工作流名称
+name: Deploy LWF-IM to Server
+
+# 触发条件：当推送到 master 分支时执行
+on:
+  push:
+    branches: [master]
+  # 可选：支持手动触发
+  workflow_dispatch:
+
+# 工作流任务
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 第一步：拉取代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 第二步：设置 JDK 17 环境
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
+
+      # 第三步：Maven 构建打包
+      - name: Build with Maven
+        run: |
+          mvn clean package -DskipTests
+          echo "Build completed successfully"
+
+      # 第四步：配置 SSH 连接
+      - name: Setup SSH connection
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # 第五步：创建服务器目录结构
+      - name: Prepare server directories
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            mkdir -p /opt/lwf-im/im-platform
+            mkdir -p /opt/lwf-im/im-server
+            mkdir -p /opt/lwf-im/logs
+            mkdir -p /opt/lwf-im/config
+          EOF
+
+      # 第六步：部署 im-platform 服务
+      - name: Deploy im-platform
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            im-platform/target/im-platform.jar \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/lwf-im/im-platform/
+          echo "im-platform.jar deployed"
+
+      # 第七步：部署 im-server 服务
+      - name: Deploy im-server
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            im-server/target/im-server.jar \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/lwf-im/im-server/
+          echo "im-server.jar deployed"
+
+      # 第八步：部署配置文件（可选）
+      - name: Deploy config files
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            im-platform/src/main/resources/application.yml \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/lwf-im/config/application-platform.yml || true
+          scp -o StrictHostKeyChecking=no \
+            im-server/src/main/resources/application.yml \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/lwf-im/config/application-server.yml || true
+
+      # 第九步：重启服务
+      - name: Restart services
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            # 停止旧服务
+            pkill -f 'im-platform.jar' || true
+            pkill -f 'im-server.jar' || true
+            sleep 3
+
+            # 启动 im-platform
+            nohup java -jar /opt/lwf-im/im-platform/im-platform.jar \
+              --spring.config.location=/opt/lwf-im/config/application-platform.yml \
+              > /opt/lwf-im/logs/im-platform.log 2>&1 &
+
+            # 等待几秒后启动 im-server
+            sleep 5
+
+            # 启动 im-server
+            nohup java -jar /opt/lwf-im/im-server/im-server.jar \
+              --spring.config.location=/opt/lwf-im/config/application-server.yml \
+              > /opt/lwf-im/logs/im-server.log 2>&1 &
+
+            echo "Services restarted successfully"
+          EOF
+
+      # 第十步：健康检查
+      - name: Health check
+        run: |
+          sleep 10
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            echo "Checking service status..."
+            ps aux | grep -E 'im-(platform|server).jar' | grep -v grep || echo "Warning: Services may not be running"
+          EOF
