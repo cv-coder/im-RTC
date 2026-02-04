@@ -47,10 +47,11 @@ jobs:
       - name: Prepare server directories
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            mkdir -p /www/wwwroot/lwf-im/im-platform
-            mkdir -p /www/wwwroot/lwf-im/im-server
-            mkdir -p /www/wwwroot/lwf-im/logs
-            mkdir -p /www/wwwroot/lwf-im/config
+            sudo mkdir -p /www/wwwroot/lwf-im/im-platform
+            sudo mkdir -p /www/wwwroot/lwf-im/im-server
+            sudo mkdir -p /www/wwwroot/lwf-im/logs
+            sudo mkdir -p /www/wwwroot/lwf-im/config
+            sudo chown -R $USER:$USER /www/wwwroot/lwf-im
           EOF
 
       # 第六步：部署 im-platform 服务
@@ -58,7 +59,7 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no \
             im-platform/target/im-platform.jar \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/lwf-im/im-platform/
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/im-platform/
           echo "im-platform.jar deployed"
 
       # 第七步：部署 im-server 服务
@@ -66,7 +67,7 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no \
             im-server/target/im-server.jar \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/lwf-im/im-server/
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/im-server/
           echo "im-server.jar deployed"
 
       # 第八步：部署配置文件（可选）
@@ -74,10 +75,10 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no \
             im-platform/src/main/resources/application.yml \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/lwf-im/config/application-platform.yml || true
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/config/application-platform.yml || true
           scp -o StrictHostKeyChecking=no \
             im-server/src/main/resources/application.yml \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/lwf-im/config/application-server.yml || true
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/config/application-server.yml || true
 
       # 第九步：重启服务
       - name: Restart services
@@ -89,17 +90,17 @@ jobs:
             sleep 3
 
             # 启动 im-platform
-            nohup java -jar /opt/lwf-im/im-platform/im-platform.jar \
-              --spring.config.location=/opt/lwf-im/config/application-platform.yml \
-              > /opt/lwf-im/logs/im-platform.log 2>&1 &
+            nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
+              --spring.config.location=/www/wwwroot/lwf-im/config/application-platform.yml \
+              > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
 
             # 等待几秒后启动 im-server
             sleep 5
 
             # 启动 im-server
-            nohup java -jar /opt/lwf-im/im-server/im-server.jar \
-              --spring.config.location=/opt/lwf-im/config/application-server.yml \
-              > /opt/lwf-im/logs/im-server.log 2>&1 &
+            nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
+              --spring.config.location=/www/wwwroot/lwf-im/config/application-server.yml \
+              > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
 
             echo "Services restarted successfully"
           EOF
