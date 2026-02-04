@@ -18,7 +18,7 @@ public class WebrtcPrivateController {
 
     @Operation(summary = "呼叫视频通话")
     @PostMapping("/call")
-    public Result call(@RequestParam Long uid, @RequestParam(defaultValue = "video") String mode,
+    public Result<?> call(@RequestParam Long uid, @RequestParam(defaultValue = "video") String mode,
             @RequestBody String offer) {
         webrtcPrivateService.call(uid, mode, offer);
         return ResultUtils.success();
