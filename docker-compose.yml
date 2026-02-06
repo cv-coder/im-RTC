@@ -14,13 +14,13 @@ services:
 
   redis:
     image: redis:6.2-alpine
-    command: ["redis-server", "--requirepass", "PmEpfRjpBnTN6CgW"]
+    command: redis-server --requirepass PmEpfRjpBnTN6CgW  # 字符串格式，空格分隔
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
-
+      
   minio:
     image: minio/minio
     restart: unless-stopped
