@@ -92,19 +92,16 @@ jobs:
             pkill -f 'im-server.jar' || true
             sleep 3
 
-            # 启动 im-platform（使用 prod profile，指定服务配置文件）
+            # 启动 im-platform（使用 prod profile，追加服务配置文件）
             nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
-              --spring.config.location=file:/www/wwwroot/lwf-im/config/im-platform/application-prod.yml \
               --spring.profiles.active=prod \
               > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
 
             # 等待几秒后启动 im-server
             sleep 5
 
-            # 启动 im-server（使用 prod profile，指定服务配置文件）
+            # 启动 im-server（使用 prod profile，追加服务配置文件）
             nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
-              --spring.config.location=file:/www/wwwroot/lwf-im/config/im-server/application-prod.yml \
-              --spring.profiles.active=prod \
               > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
 
             echo "Services restarted successfully"
