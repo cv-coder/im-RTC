@@ -44,10 +44,10 @@ java -version
 
 ```bash
 # im-platform 配置
-sudo vim /opt/box-im/config/application-platform.yml
+sudo vim /www/wwwroot/lwf-im/config/application-platform.yml
 
 # im-server 配置
-sudo vim /opt/box-im/config/application-server.yml
+sudo vim /www/wwwroot/lwf-im/config/application-server.yml
 ```
 
 **重要配置项：**
@@ -89,7 +89,7 @@ sudo firewall-cmd --reload
 服务器上的目录结构：
 
 ```
-/opt/box-im/
+/www/wwwroot/lwf-im/
 ├── im-platform/
 │   └── im-platform.jar          # 业务平台服务
 ├── im-server/
@@ -98,8 +98,8 @@ sudo firewall-cmd --reload
 │   ├── application-platform.yml # 平台配置文件
 │   └── application-server.yml   # 推送服务配置文件
 └── logs/
-    ├── im-platform.log          # 平台日志
-    └── im-server.log            # 推送服务日志
+  ├── im-platform.log          # 平台日志
+  └── im-server.log            # 推送服务日志
 ```
 
 ## 查看服务状态
@@ -111,21 +111,21 @@ sudo firewall-cmd --reload
 ps aux | grep 'im-.*.jar'
 
 # 查看日志
-tail -f /opt/box-im/logs/im-platform.log
-tail -f /opt/box-im/logs/im-server.log
+tail -f /www/wwwroot/lwf-im/logs/im-platform.log
+tail -f /www/wwwroot/lwf-im/logs/im-server.log
 
 # 停止服务
 pkill -f 'im-platform.jar'
 pkill -f 'im-server.jar'
 
 # 手动启动
-nohup java -jar /opt/box-im/im-platform/im-platform.jar \
-  --spring.config.location=/opt/box-im/config/application-platform.yml \
-  > /opt/box-im/logs/im-platform.log 2>&1 &
+nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
+  --spring.config.location=/www/wwwroot/lwf-im/config/application-platform.yml \
+  > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
 
-nohup java -jar /opt/box-im/im-server/im-server.jar \
-  --spring.config.location=/opt/box-im/config/application-server.yml \
-  > /opt/box-im/logs/im-server.log 2>&1 &
+nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
+  --spring.config.location=/www/wwwroot/lwf-im/config/application-server.yml \
+  > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
 ```
 
 ## 进阶配置
@@ -149,12 +149,12 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/opt/box-im/im-platform
-ExecStart=/usr/bin/java -jar /opt/box-im/im-platform/im-platform.jar --spring.config.location=/opt/box-im/config/application-platform.yml
+WorkingDirectory=/www/wwwroot/lwf-im/im-platform
+ExecStart=/usr/bin/java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar --spring.config.location=/www/wwwroot/lwf-im/config/application-platform.yml
 Restart=on-failure
 RestartSec=10
-StandardOutput=append:/opt/box-im/logs/im-platform.log
-StandardError=append:/opt/box-im/logs/im-platform.log
+StandardOutput=append:/www/wwwroot/lwf-im/logs/im-platform.log
+StandardError=append:/www/wwwroot/lwf-im/logs/im-platform.log
 
 [Install]
 WantedBy=multi-user.target
@@ -202,7 +202,7 @@ sudo systemctl status im-server
    - 检查服务器 SSH 端口是否开放
 
 2. **服务启动失败**
-   - 查看日志文件：`tail -f /opt/box-im/logs/*.log`
+  - 查看日志文件：`tail -f /www/wwwroot/lwf-im/logs/*.log`
    - 检查配置文件是否正确
    - 确认数据库/Redis 连接正常
 

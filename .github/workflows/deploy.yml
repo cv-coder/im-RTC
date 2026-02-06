@@ -70,16 +70,6 @@ jobs:
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/im-server/
           echo "im-server.jar deployed"
 
-      # 第八步：部署配置文件（可选）
-      - name: Deploy config files
-        run: |
-          scp -o StrictHostKeyChecking=no \
-            im-platform/src/main/resources/application.yml \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/config/application-platform.yml || true
-          scp -o StrictHostKeyChecking=no \
-            im-server/src/main/resources/application.yml \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/config/application-server.yml || true
-
       # 第九步：重启服务
       - name: Restart services
         run: |
@@ -89,17 +79,19 @@ jobs:
             pkill -f 'im-server.jar' || true
             sleep 3
 
-            # 启动 im-platform
+            # 启动 im-platform（使用 prod profile）
             nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
-              --spring.config.location=/www/wwwroot/lwf-im/config/application-platform.yml \
+              --spring.config.location=file:/www/wwwroot/lwf-im/config/ \
+              --spring.profiles.active=prod \
               > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
 
             # 等待几秒后启动 im-server
             sleep 5
 
-            # 启动 im-server
+            # 启动 im-server（使用 prod profile）
             nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
-              --spring.config.location=/www/wwwroot/lwf-im/config/application-server.yml \
+              --spring.config.location=file:/www/wwwroot/lwf-im/config/ \
+              --spring.profiles.active=prod \
               > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
 
             echo "Services restarted successfully"
