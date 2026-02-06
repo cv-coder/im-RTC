@@ -50,9 +50,22 @@ jobs:
             sudo mkdir -p /www/wwwroot/lwf-im/im-platform
             sudo mkdir -p /www/wwwroot/lwf-im/im-server
             sudo mkdir -p /www/wwwroot/lwf-im/logs
-            sudo mkdir -p /www/wwwroot/lwf-im/config
+            sudo mkdir -p /www/wwwroot/lwf-im/config/im-platform
+            sudo mkdir -p /www/wwwroot/lwf-im/config/im-server
             sudo chown -R $USER:$USER /www/wwwroot/lwf-im
           EOF
+
+      # 第五点半步：上传生产配置文件到服务器
+      - name: Deploy prod config files
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            im-platform/src/main/resources/application-prod.yml \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/config/im-platform/application-prod.yml
+
+          scp -o StrictHostKeyChecking=no \
+            im-server/src/main/resources/application-prod.yml \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/config/im-server/application-prod.yml
+          echo "prod config files deployed"
 
       # 第六步：部署 im-platform 服务
       - name: Deploy im-platform
@@ -79,18 +92,18 @@ jobs:
             pkill -f 'im-server.jar' || true
             sleep 3
 
-            # 启动 im-platform（使用 prod profile）
+            # 启动 im-platform（使用 prod profile，指定服务配置文件）
             nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
-              --spring.config.location=file:/www/wwwroot/lwf-im/config/ \
+              --spring.config.location=file:/www/wwwroot/lwf-im/config/im-platform/application-prod.yml \
               --spring.profiles.active=prod \
               > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
 
             # 等待几秒后启动 im-server
             sleep 5
 
-            # 启动 im-server（使用 prod profile）
+            # 启动 im-server（使用 prod profile，指定服务配置文件）
             nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
-              --spring.config.location=file:/www/wwwroot/lwf-im/config/ \
+              --spring.config.location=file:/www/wwwroot/lwf-im/config/im-server/application-prod.yml \
               --spring.profiles.active=prod \
               > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
 
