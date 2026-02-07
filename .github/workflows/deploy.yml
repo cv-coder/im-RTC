@@ -94,6 +94,7 @@ jobs:
 
             # 启动 im-platform（使用 prod profile，追加服务配置文件）
             nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
+              --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-platform/application-prod.yml \
               --spring.profiles.active=prod \
               > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
 
@@ -102,6 +103,7 @@ jobs:
 
             # 启动 im-server（使用 prod profile，追加服务配置文件）
             nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
+              --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-server/application-prod.yml \
               --spring.profiles.active=prod \
               > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
 
