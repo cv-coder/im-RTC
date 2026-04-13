@@ -144,8 +144,8 @@ export default {
       this.audio.pause();
       // 初始化webrtc
       this.initRtc();
-      // 打开摄像头
-      this.openStream().finally(() => {
+      // 打开摄像头/麦克风
+      this.openStream().then(() => {
         this.webrtc.setStream(this.localStream);
         this.webrtc.createAnswer(this.offer).then((answer) => {
           this.API.accept(this.friend.id, answer);
@@ -154,6 +154,12 @@ export default {
           // 清理定时器
           this.waitTimer && clearTimeout(this.waitTimer);
         })
+      }).catch((e) => {
+        const errorMsg = e && e.message ? e.message : "打开麦克风/摄像头失败";
+        this.$message.error(errorMsg);
+        console.error("接听时打开设备失败:", e);
+        this.API.failed(this.friend.id, errorMsg);
+        this.close();
       })
     },
     onReject() {
@@ -284,24 +290,32 @@ export default {
           this.camera.openVideo().then((stream) => {
             this.localStream = stream;
             this.$nextTick(() => {
-              this.$refs.localVideo.srcObject = stream;
-              this.$refs.localVideo.muted = true;
+              if (this.$refs.localVideo) {
+                this.$refs.localVideo.srcObject = stream;
+                this.$refs.localVideo.muted = true;
+              }
             })
             resolve(stream);
           }).catch((e) => {
-            this.$message.error("打开摄像头失败")
-            console.log("本摄像头打开失败:" + e.message)
+            const errorMsg = e && e.message ? e.message : "打开摄像头失败";
+            this.$message.error(errorMsg)
+            console.error("打开摄像头失败:", e)
             reject(e);
           })
         } else {
           // 打开麦克风
           this.camera.openAudio().then((stream) => {
             this.localStream = stream;
-            this.$refs.localVideo.srcObject = stream;
+            this.$nextTick(() => {
+              if (this.$refs.localVideo) {
+                this.$refs.localVideo.srcObject = stream;
+              }
+            })
             resolve(stream);
           }).catch((e) => {
-            this.$message.error("打开麦克风失败")
-            console.log("打开麦克风失败:" + e.message)
+            const errorMsg = e && e.message ? e.message : "打开麦克风失败";
+            this.$message.error(errorMsg)
+            console.error("打开麦克风失败:", e)
             reject(e);
           })
         }
@@ -315,14 +329,18 @@ export default {
       }, 1000)
     },
     checkDevEnable() {
-      // 检测摄像头
+      // 检测摄像头和麦克风能力
       if (!this.camera.isEnable()) {
-        this.message.error("访问摄像头失败");
+        this.$message.error("访问麦克风/摄像头失败: 浏览器不支持 getUserMedia");
+        return false;
+      }
+      if (!window.isSecureContext) {
+        this.$message.error("当前页面不是安全上下文，请使用 localhost 或 https 访问");
         return false;
       }
       // 检测webrtc
       if (!this.webrtc.isEnable()) {
-        this.message.error("初始化RTC失败，原因可能是: 1.服务器缺少ssl证书 2.您的设备不支持WebRTC");
+        this.$message.error("初始化RTC失败，原因可能是: 1.服务器缺少SSL证书 2.您的设备不支持WebRTC");
         return false;
       }
       return true;
