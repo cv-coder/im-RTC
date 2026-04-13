@@ -13,14 +13,14 @@ UNI_APP.EMO_URL = "/static/emoji/";
 
 if(ENV=="DEV"){
 	UNI_APP.BASE_URL = "http://127.0.0.1:8888";
-	UNI_APP.WS_URL = "ws://127.0.0.1:8878/im";
+	UNI_APP.WS_URL = "ws://4.194.178.246/im";
 	// H5 走本地代理解决跨域问题
 	// #ifdef H5
 	UNI_APP.BASE_URL = "/api";
 	// #endif
 }
 if(ENV=="PROD"){
-	UNI_APP.BASE_URL = "https://www.boxim.online/api";
-	UNI_APP.WS_URL = "wss://www.boxim.online/im";
+	UNI_APP.BASE_URL = "http://4.194.178.246/api";
+	UNI_APP.WS_URL = "ws://4.194.178.246/im";
 }
 export default UNI_APP

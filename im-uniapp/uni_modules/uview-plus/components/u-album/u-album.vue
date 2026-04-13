@@ -1,51 +1,28 @@
 <template>
     <view class="u-album">
-        <view
-            class="u-album__row"
-            ref="u-album__row"
-            v-for="(arr, index) in showUrls"
-            :forComputedUse="albumWidth"
-            :key="index"
-        >
-            <view
-                class="u-album__row__wrapper"
-                v-for="(item, index1) in arr"
-                :key="index1"
-                :style="[imageStyle(index + 1, index1 + 1)]"
-                @tap="previewFullImage ? onPreviewTap(getSrc(item)) : ''"
-            >
-                <image
-                    :src="getSrc(item)"
-                    :mode="
-                        urls.length === 1
-                            ? imageHeight > 0
-                                ? singleMode
-                                : 'widthFix'
-                            : multipleMode
-                    "
-                    :style="[
+        <view class="u-album__row" ref="u-album__row" v-for="(arr, index) in showUrls" :forComputedUse="albumWidth"
+            :key="index">
+            <view class="u-album__row__wrapper" v-for="(item, index1) in arr" :key="index1"
+                :style="[imageStyle(index + 1, index1 + 1)]" @tap="previewFullImage ? onPreviewTap(getSrc(item)) : ''">
+                <image :src="getSrc(item)" :mode="urls.length === 1
+                        ? imageHeight > 0
+                            ? singleMode
+                            : 'widthFix'
+                        : multipleMode
+                    " :style="[
                         {
                             width: imageWidth,
                             height: imageHeight
                         }
-                    ]"
-                ></image>
-                <view
-                    v-if="
-                        showMore &&
-                        urls.length > rowCount * showUrls.length &&
-                        index === showUrls.length - 1 &&
-                        index1 === showUrls[showUrls.length - 1].length - 1
-                    "
-                    class="u-album__row__wrapper__text"
-                >
-                    <up-text
-                        :text="`+${urls.length - maxCount}`"
-                        color="#fff"
-                        :size="multipleSize * 0.3"
-                        align="center"
-                        customStyle="justify-content: center"
-                    ></up-text>
+                    ]"></image>
+                <view v-if="
+                    showMore &&
+                    urls.length > rowCount * showUrls.length &&
+                    index === showUrls.length - 1 &&
+                    index1 === showUrls[showUrls.length - 1].length - 1
+                " class="u-album__row__wrapper__text">
+                    <up-text :text="`+${urls.length - maxCount}`" color="#fff" :size="multipleSize * 0.3" align="center"
+                        customStyle="justify-content: center"></up-text>
                 </view>
             </view>
         </view>
@@ -106,7 +83,7 @@ export default {
             }
         }
     },
-	emits: ["albumWidth"],
+    emits: ["albumWidth"],
     computed: {
         imageStyle() {
             return (index1, index2) => {
@@ -191,7 +168,7 @@ export default {
         },
         // 单图时，获取图片的尺寸
         // 在小程序中，需要将网络图片的的域名添加到小程序的download域名才可能获取尺寸
-        // 在没有添加的情况下，让单图宽度默认为盒子的一定宽度(singlePercent)
+        // 在没有添加的情况下，让单图宽度默认为LWF的一定宽度(singlePercent)
         getImageRect() {
             const src = this.getSrc(this.urls[0])
             uni.getImageInfo({

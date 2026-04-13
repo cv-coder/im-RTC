@@ -2,7 +2,7 @@
 	<view class="register">
 		<view class="title">欢迎注册</view>
 		<view class="form">
-			<uni-forms  ref="form" :modelValue="dataForm" :rules="rules" validate-trigger="bind" label-width="80px">
+			<uni-forms ref="form" :modelValue="dataForm" :rules="rules" validate-trigger="bind" label-width="80px">
 				<uni-forms-item name="userName" label="用户名">
 					<uni-easyinput type="text" v-model="dataForm.userName" placeholder="用户名" />
 				</uni-forms-item>
@@ -78,7 +78,7 @@ export default {
 					method: 'POST'
 				}).then(() => {
 					uni.showToast({
-						title: "注册成功,您已成为盒子IM的用户",
+						title: "注册成功,您已成为LWFIM的用户",
 						icon: 'none'
 					})
 					this.login();

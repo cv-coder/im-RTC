@@ -13,3 +13,5 @@
 /im-uniapp/node_modules/
 /im-uniapp/package-lock.json
 im-web/package-lock.json
+im-web/.env.production
+/im-uniapp/unpackage/

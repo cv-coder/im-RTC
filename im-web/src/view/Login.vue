@@ -5,7 +5,7 @@
 				@keyup.enter.native="submitForm('loginForm')">
 				<div class="login-brand">
 					<img class="logo" src="../../public/logo.png" />
-					<div>登录盒子IM</div>
+					<div>登录LWF-IM</div>
 				</div>
 				<el-form-item label="终端" prop="userName" v-show="false">
 					<el-input type="terminal" v-model="loginForm.terminal" autocomplete="off"></el-input>

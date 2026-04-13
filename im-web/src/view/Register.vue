@@ -5,7 +5,7 @@
 				class="web-ruleForm">
 				<div class="register-brand">
 					<img class="logo" src="../../public/logo.png" />
-					<div>欢迎成为盒子IM的用户</div>
+					<div>欢迎成为LWFIM的用户</div>
 				</div>
 				<el-form-item label="用户名" prop="userName">
 					<el-input type="userName" v-model="registerForm.userName" autocomplete="off"
