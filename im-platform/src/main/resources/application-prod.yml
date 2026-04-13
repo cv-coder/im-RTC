@@ -23,10 +23,11 @@ minio:
 
 webrtc:
   max-channel: 9 # 多人通话最大通道数量，最大不能超过16,建议值:4,9,16
-  iceServers: #coturn配置
-    - urls: stun:www.boxim.online:3478
+  iceServers:
+    - urls: stun:4.194.178.246:3478
+    - urls: turn:4.194.178.246:3478?transport=udp
       username: admin
       credential: UrHHKNvE7nFvBTMV
-    - urls: turn:www.boxim.online:3478
+    - urls: turn:4.194.178.246:3478?transport=tcp
       username: admin
       credential: UrHHKNvE7nFvBTMV
