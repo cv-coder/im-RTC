@@ -1,16 +1,12 @@
-const path = require('path')
-const fs = require('fs')
+const apiProxyTarget = process.env.VUE_APP_PROXY_TARGET || 'http://4.194.178.246'
 
 module.exports = {
 	devServer: {
 		proxy: {
 			'/api': {
-				target: 'http://127.0.0.1:8888',
+				target: apiProxyTarget,
 				changeOrigin: true,
-				ws: false,
-				pathRewrite: {
-					'^/api': ''
-				}
+				ws: false
 			}
 		}
 	}
