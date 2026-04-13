@@ -2,6 +2,7 @@ version: "3.8"
 services:
   mysql:
     image: mysql:8.0
+    platform: linux/arm64/v8
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: "naQRLdDPbGv2j7PX_"
@@ -14,6 +15,7 @@ services:
 
   redis:
     image: redis:6.2-alpine
+    platform: linux/arm64/v8
     command: redis-server --requirepass PmEpfRjpBnTN6CgW  # 字符串格式，空格分隔
     restart: unless-stopped
     ports:
@@ -23,6 +25,7 @@ services:
       
   minio:
     image: minio/minio
+    platform: linux/arm64/v8
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: "admin"
@@ -35,8 +38,8 @@ services:
       - minio-data:/data
 
   coturn:
-    image: instrumentisto/coturn
-    platform: linux/amd64
+    image: coturn/coturn
+    platform: linux/arm64/v8
     restart: unless-stopped
     command:
       [
