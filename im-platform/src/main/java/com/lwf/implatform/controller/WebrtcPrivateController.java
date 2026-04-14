@@ -1,5 +1,8 @@
 package com.lwf.implatform.controller;
 
+import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
+import com.lwf.implatform.exception.GlobalException;
 import com.lwf.implatform.result.Result;
 import com.lwf.implatform.result.ResultUtils;
 import com.lwf.implatform.service.WebrtcPrivateService;
@@ -19,15 +22,15 @@ public class WebrtcPrivateController {
     @Operation(summary = "呼叫视频通话")
     @PostMapping("/call")
     public Result<?> call(@RequestParam Long uid, @RequestParam(defaultValue = "video") String mode,
-            @RequestBody String offer) {
-        webrtcPrivateService.call(uid, mode, offer);
+            @RequestBody(required = false) Object offer) {
+        webrtcPrivateService.call(uid, mode, normalizeSignal(offer, "offer"));
         return ResultUtils.success();
     }
 
     @Operation(summary = "接受视频通话")
     @PostMapping("/accept")
-    public Result accept(@RequestParam Long uid, @RequestBody String answer) {
-        webrtcPrivateService.accept(uid, answer);
+    public Result accept(@RequestParam Long uid, @RequestBody(required = false) Object answer) {
+        webrtcPrivateService.accept(uid, normalizeSignal(answer, "answer"));
         return ResultUtils.success();
     }
 
@@ -61,8 +64,8 @@ public class WebrtcPrivateController {
 
     @PostMapping("/candidate")
     @Operation(summary = "同步candidate")
-    public Result candidate(@RequestParam Long uid, @RequestBody String candidate) {
-        webrtcPrivateService.candidate(uid, candidate);
+    public Result candidate(@RequestParam Long uid, @RequestBody(required = false) Object candidate) {
+        webrtcPrivateService.candidate(uid, normalizeSignal(candidate, "candidate"));
         return ResultUtils.success();
     }
 
@@ -71,5 +74,19 @@ public class WebrtcPrivateController {
     public Result heartbeat(@RequestParam Long uid) {
         webrtcPrivateService.heartbeat(uid);
         return ResultUtils.success();
+    }
+
+    /**
+     * 兼容前端传字符串/对象两种信令格式，避免因请求体反序列化失败直接返回500。
+     */
+    private String normalizeSignal(Object signal, String signalName) {
+        if (signal == null) {
+            throw new GlobalException(signalName + "不能为空");
+        }
+        String content = signal instanceof String ? (String) signal : JSON.toJSONString(signal);
+        if (StrUtil.isBlank(content) || "null".equalsIgnoreCase(content)) {
+            throw new GlobalException(signalName + "不能为空");
+        }
+        return content;
     }
 }

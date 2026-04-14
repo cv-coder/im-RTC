@@ -51,12 +51,12 @@ public class WebrtcPrivateServiceImpl implements WebrtcPrivateService {
         webrtcSession.setMode(mode);
         // 校验
         if (!imClient.isOnline(uid)) {
-            this.sendActMessage(webrtcSession, MessageStatus.UNSEND, "未接通");
+            this.trySendActMessage(webrtcSession, MessageStatus.UNSEND, "未接通");
             log.info("对方不在线,uid:{}", uid);
             throw new GlobalException("对方目前不在线");
         }
-        if (userStateUtils.isBusy(uid)) {
-            this.sendActMessage(webrtcSession, MessageStatus.UNSEND, "未接通");
+        if (Boolean.TRUE.equals(userStateUtils.isBusy(uid))) {
+            this.trySendActMessage(webrtcSession, MessageStatus.UNSEND, "未接通");
             log.info("对方正忙,uid:{}", uid);
             throw new GlobalException("对方正忙");
         }
@@ -68,7 +68,7 @@ public class WebrtcPrivateServiceImpl implements WebrtcPrivateService {
         userStateUtils.setBusy(session.getUserId());
         // 向对方所有终端发起呼叫
         PrivateMessageVO messageInfo = new PrivateMessageVO();
-        MessageType messageType = mode.equals(WebrtcMode.VIDEO.getValue()) ? MessageType.RTC_CALL_VIDEO
+        MessageType messageType = WebrtcMode.VIDEO.getValue().equals(mode) ? MessageType.RTC_CALL_VIDEO
                 : MessageType.RTC_CALL_VOICE;
         messageInfo.setType(messageType.code());
         messageInfo.setRecvId(uid);
@@ -294,6 +294,18 @@ public class WebrtcPrivateServiceImpl implements WebrtcPrivateService {
             return webrtcSession.getCallerTerminal();
         }
         return webrtcSession.getAcceptorTerminal();
+    }
+
+    /**
+     * 通话未接通时会落一条提示消息，不应影响主业务返回。
+     */
+    private void trySendActMessage(WebrtcPrivateSession rtcSession, MessageStatus status, String content) {
+        try {
+            sendActMessage(rtcSession, status, content);
+        } catch (Exception e) {
+            log.error("保存rtc提示消息失败,callerId:{},acceptorId:{},content:{}",
+                    rtcSession.getCallerId(), rtcSession.getAcceptorId(), content, e);
+        }
     }
 
     private void sendActMessage(WebrtcPrivateSession rtcSession, MessageStatus status, String content) {
