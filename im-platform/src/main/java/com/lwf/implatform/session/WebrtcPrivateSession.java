@@ -2,13 +2,18 @@ package com.lwf.implatform.session;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /*
  * webrtc 会话信息
  * @Author Blue
  * @Date 2022/10/21
  */
 @Data
-public class WebrtcPrivateSession {
+public class WebrtcPrivateSession implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     /**
      * 发起者id
      */

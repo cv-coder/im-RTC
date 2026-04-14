@@ -3,6 +3,7 @@ package com.lwf.implatform.session;
 import com.lwf.imcommon.model.IMUserInfo;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,7 +13,10 @@ import java.util.List;
  * @version: 1.0
  */
 @Data
-public class WebrtcGroupSession {
+public class WebrtcGroupSession implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
 
     /**
      * 通话发起者

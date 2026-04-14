@@ -3,6 +3,8 @@ package com.lwf.implatform.session;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author: Blue
  * @date: 2024-06-02
@@ -10,7 +12,10 @@ import lombok.Data;
  */
 @Data
 @Schema(description = "用户信息")
-public class WebrtcUserInfo {
+public class WebrtcUserInfo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Schema(description = "用户id")
     private Long id;
 
