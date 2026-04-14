@@ -89,29 +89,48 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
             set -e
 
-            # 停止旧服务（进程不存在时 pkill 返回非0，|| true 忽略）
-            pkill -f 'im-platform.jar' || true
-            pkill -f 'im-server.jar' || true
-            sleep 3
+            PID_DIR=/www/wwwroot/lwf-im/pids
+            mkdir -p "$PID_DIR"
 
-            # 启动 im-platform
+            # 通过 pid 文件停止旧服务，避免 pkill 跨用户权限问题
+            for SVC in im-platform im-server; do
+              PID_FILE="$PID_DIR/$SVC.pid"
+              if [ -f "$PID_FILE" ]; then
+                OLD_PID=$(cat "$PID_FILE")
+                if kill -0 "$OLD_PID" 2>/dev/null; then
+                  echo "Stopping $SVC (pid=$OLD_PID)..."
+                  kill "$OLD_PID"
+                  # 等待进程真正退出（最多 15 秒）
+                  for i in $(seq 1 15); do
+                    kill -0 "$OLD_PID" 2>/dev/null || break
+                    sleep 1
+                  done
+                  # 仍未退出则强杀
+                  kill -0 "$OLD_PID" 2>/dev/null && kill -9 "$OLD_PID" || true
+                fi
+                rm -f "$PID_FILE"
+              fi
+            done
+
+            # 启动 im-platform，记录 pid
             nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
               --spring.profiles.active=prod \
               --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-platform/ \
               > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
+            echo $! > "$PID_DIR/im-platform.pid"
             disown
 
-            # im-platform 启动后稳定一会再拉起 im-server（im-server 依赖 Redis，与 platform 无强依赖，sleep 可酌情调整）
             sleep 8
 
-            # 启动 im-server
+            # 启动 im-server，记录 pid
             nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
               --spring.profiles.active=prod \
               --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-server/ \
               > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
+            echo $! > "$PID_DIR/im-server.pid"
             disown
 
-            echo "Services restarted"
+            echo "Services restarted (platform pid=$(cat $PID_DIR/im-platform.pid), server pid=$(cat $PID_DIR/im-server.pid))"
           EOF
 
       # 第九步：健康检查（等待足够时间让 Spring Boot 完成启动）
