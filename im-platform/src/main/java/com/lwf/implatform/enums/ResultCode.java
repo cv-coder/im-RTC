@@ -27,7 +27,7 @@ public enum ResultCode {
     /**
      * 系统繁忙，请稍后再试
      */
-    PROGRAM_ERROR(500, "系统繁忙，请稍后再试"),
+    PROGRAM_ERROR(500, "系统繁忙，请稍后再试吧"),
     /**
      * 密码不正确
      */
