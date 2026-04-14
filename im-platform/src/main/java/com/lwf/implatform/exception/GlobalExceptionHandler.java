@@ -31,16 +31,24 @@ public class GlobalExceptionHandler {
             GlobalException ex = (GlobalException) e;
             // token过期是正常情况,不打印
             if (!ex.getCode().equals(ResultCode.INVALID_TOKEN.getCode())) {
-                log.error("全局异常捕获:msg:{},log:{},{}", ex.getMessage(), e);
+                log.error("全局异常捕获:msg:{}", ex.getMessage(), e);
             }
             return ResultUtils.error(ex.getCode(), ex.getMessage());
         } else if (e instanceof UndeclaredThrowableException) {
-            GlobalException ex = (GlobalException) e.getCause();
-            log.error("全局异常捕获:msg:{},log:{},{}", ex.getMessage(), e);
-            return ResultUtils.error(ex.getCode(), ex.getMessage());
+            Throwable cause = e.getCause();
+            if (cause instanceof GlobalException) {
+                GlobalException ex = (GlobalException) cause;
+                log.error("全局异常捕获(UndeclaredThrowable):msg:{}", ex.getMessage(), e);
+                return ResultUtils.error(ex.getCode(), ex.getMessage());
+            }
+            log.error("全局异常捕获(UndeclaredThrowable):msg:{}", cause != null ? cause.getMessage() : e.getMessage(), e);
+            return ResultUtils.error(ResultCode.PROGRAM_ERROR,
+                    cause != null ? cause.getClass().getSimpleName() + ": " + cause.getMessage() : e.getMessage());
         } else {
-            log.error("全局异常捕获:msg:{},{}", e.getMessage(), e);
-            return ResultUtils.error(ResultCode.PROGRAM_ERROR);
+            log.error("全局异常捕获:msg:{}", e.getMessage(), e);
+            // 将真实异常类型和消息返回，便于前端/开发定位问题
+            String detail = e.getClass().getSimpleName() + ": " + e.getMessage();
+            return ResultUtils.error(ResultCode.PROGRAM_ERROR, detail);
         }
     }
 
