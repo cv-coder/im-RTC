@@ -27,6 +27,7 @@ jobs:
           cache: "maven"
 
       # 第三步：Maven 构建打包
+      # 注意：prod 配置文件含数据库密码等敏感信息，不打入 jar 包，部署时单独上传覆盖
       - name: Build with Maven
         run: |
           mvn clean package -DskipTests
@@ -38,24 +39,21 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # 调试步骤：测试 SSH 连接
-      - name: Test SSH connection
-        run: |
-          ssh -o StrictHostKeyChecking=no -v ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH connection successful'; whoami; pwd"
-
-      # 第五步：创建服务器目录结构
+      # 第五步：创建服务器目录结构（幂等，可重复执行）
       - name: Prepare server directories
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            sudo mkdir -p /www/wwwroot/lwf-im/im-platform
-            sudo mkdir -p /www/wwwroot/lwf-im/im-server
-            sudo mkdir -p /www/wwwroot/lwf-im/logs
-            sudo mkdir -p /www/wwwroot/lwf-im/config/im-platform
-            sudo mkdir -p /www/wwwroot/lwf-im/config/im-server
-            sudo chown -R $USER:$USER /www/wwwroot/lwf-im
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
+            set -e
+            mkdir -p /www/wwwroot/lwf-im/im-platform
+            mkdir -p /www/wwwroot/lwf-im/im-server
+            mkdir -p /www/wwwroot/lwf-im/logs
+            mkdir -p /www/wwwroot/lwf-im/config/im-platform
+            mkdir -p /www/wwwroot/lwf-im/config/im-server
           EOF
 
-      # 第五点半步：上传生产配置文件到服务器
+      # 第六步：上传生产配置文件
+      # ⚠️  application-prod.yml 含敏感信息，请确保已加入 .gitignore，
+      #     并通过 GitHub Secrets 或此处直接 scp 的方式管理
       - name: Deploy prod config files
         run: |
           scp -o StrictHostKeyChecking=no \
@@ -65,56 +63,70 @@ jobs:
           scp -o StrictHostKeyChecking=no \
             im-server/src/main/resources/application-prod.yml \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/config/im-server/application-prod.yml
+
           echo "prod config files deployed"
 
-      # 第六步：部署 im-platform 服务
-      - name: Deploy im-platform
+      # 第七步：上传 jar 包
+      - name: Deploy jars
         run: |
           scp -o StrictHostKeyChecking=no \
             im-platform/target/im-platform.jar \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/im-platform/
-          echo "im-platform.jar deployed"
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/im-platform/im-platform.jar
 
-      # 第七步：部署 im-server 服务
-      - name: Deploy im-server
-        run: |
           scp -o StrictHostKeyChecking=no \
             im-server/target/im-server.jar \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/im-server/
-          echo "im-server.jar deployed"
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/lwf-im/im-server/im-server.jar
 
-      # 第九步：重启服务
+          echo "jars deployed"
+
+      # 第八步：重启服务
+      # 修复点1：heredoc 内不能有前置空格，否则 << 'EOF' 无法识别结束标记导致 ssh 挂起
+      # 修复点2：nohup 后台进程用 disown 彻底脱离 ssh 会话，避免 ssh 退出时 SIGHUP 杀死子进程
+      # 修复点3：启动命令只需 --spring.profiles.active=prod，Spring Boot 会自动加载
+      #          jar 外同目录的 application-prod.yml（Spring Boot 外部配置优先级规则）
       - name: Restart services
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            # 停止旧服务
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
+            set -e
+
+            # 停止旧服务（进程不存在时 pkill 返回非0，|| true 忽略）
             pkill -f 'im-platform.jar' || true
             pkill -f 'im-server.jar' || true
             sleep 3
 
-            # 启动 im-platform（使用 prod profile，追加服务配置文件）
+            # 启动 im-platform
             nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
-              --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-platform/application-prod.yml \
               --spring.profiles.active=prod \
+              --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-platform/ \
               > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
+            disown
 
-            # 等待几秒后启动 im-server
-            sleep 5
+            # im-platform 启动后稳定一会再拉起 im-server（im-server 依赖 Redis，与 platform 无强依赖，sleep 可酌情调整）
+            sleep 8
 
-            # 启动 im-server（使用 prod profile，追加服务配置文件）
+            # 启动 im-server
             nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
-              --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-server/application-prod.yml \
               --spring.profiles.active=prod \
+              --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-server/ \
               > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
+            disown
 
-            echo "Services restarted successfully"
+            echo "Services restarted"
           EOF
 
-      # 第十步：健康检查
+      # 第九步：健康检查（等待足够时间让 Spring Boot 完成启动）
       - name: Health check
         run: |
-          sleep 10
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            echo "Checking service status..."
-            ps aux | grep -E 'im-(platform|server).jar' | grep -v grep || echo "Warning: Services may not be running"
+          sleep 20
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
+            echo "=== Process check ==="
+            ps aux | grep -E 'im-(platform|server)\.jar' | grep -v grep \
+              && echo "✅ Services are running" \
+              || echo "❌ WARNING: Services may not be running"
+
+            echo "=== im-platform log tail ==="
+            tail -20 /www/wwwroot/lwf-im/logs/im-platform.log || true
+
+            echo "=== im-server log tail ==="
+            tail -20 /www/wwwroot/lwf-im/logs/im-server.log || true
           EOF
