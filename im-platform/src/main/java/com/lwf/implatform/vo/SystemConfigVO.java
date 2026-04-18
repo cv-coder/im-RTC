@@ -6,8 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * @author: blue
- * @date: 2024-06-10
+ * @author: LWF
+ * @date: 2025-06-10
  * @version: 1.0
  */
 @Data

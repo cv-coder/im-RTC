@@ -8,8 +8,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import java.util.Properties;
 
 /**
- * @author: Blue
- * @date: 2024-07-16
+ * @author: LWF
+ * @date: 2025-07-16
  * @version: 1.0
  */
 public class RedisMQTemplate extends RedisTemplate<String, Object> {

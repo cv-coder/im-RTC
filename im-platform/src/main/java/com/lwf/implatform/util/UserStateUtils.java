@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author: Blue
- * @date: 2024-06-10
+ * @author: LWF
+ * @date: 2025-06-10
  * @version: 1.0
  */
 @Slf4j

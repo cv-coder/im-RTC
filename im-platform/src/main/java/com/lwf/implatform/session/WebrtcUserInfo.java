@@ -6,8 +6,8 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * @author: Blue
- * @date: 2024-06-02
+ * @author: LWF
+ * @date: 2025-06-02
  * @version: 1.0
  */
 @Data

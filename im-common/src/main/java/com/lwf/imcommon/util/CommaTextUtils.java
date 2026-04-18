@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * 逗号分格文本处理工具类
  *
- * @author: blue
+ * @author: LWF
  * @date: 2023-11-09 09:52:49
  * @version: 1.0
  */

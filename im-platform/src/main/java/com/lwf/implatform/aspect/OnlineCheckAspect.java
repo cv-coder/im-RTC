@@ -12,8 +12,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 /**
- * @author: blue
- * @date: 2024-06-16
+ * @author: LWF
+ * @date: 2025-06-16
  * @version: 1.0
  */
 @Slf4j

@@ -29,9 +29,9 @@ public class SwaggerConfig {
                 .description("LWFIM业务平台服务")
                 .contact(contact)
                 .version("3.0")
-                .termsOfService("https://www.boxim.online")
+                .termsOfService("https://lwfim.backdoorbrains.com")
                 .license(new License().name("MIT")
-                        .url("https://www.boxim.online")));
+                        .url("https://lwfim.backdoorbrains.com")));
     }
 
 }

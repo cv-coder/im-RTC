@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * reids 队列拉取定时任务
  *
- * @author: Blue
- * @date: 2024-07-15
+ * @author: LWF
+ * @date: 2025-07-15
  * @version: 1.0
  */
 @Slf4j

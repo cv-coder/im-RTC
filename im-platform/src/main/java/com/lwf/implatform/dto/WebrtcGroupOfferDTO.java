@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * @author: Blue
- * @date: 2024-06-01
+ * @author: LWF
+ * @date: 2025-06-01
  * @version: 1.0
  */
 @Data

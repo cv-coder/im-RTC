@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * @author: Blue
- * @date: 2024-07-14
+ * @author: LWF
+ * @date: 2025-07-14
  * @version: 1.0
  */
 @Data
