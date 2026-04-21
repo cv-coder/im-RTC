@@ -60,6 +60,15 @@ http.interceptors.response.use(async response => {
 		return Promise.reject(response.data)
 	}
 }, error => {
+	if (!error.response) {
+		Message({
+			message: error.message || '网络请求失败，请检查网络连接',
+			type: 'error',
+			duration: 1500,
+			customClass: 'element-error-message-zindex'
+		});
+		return Promise.reject(error);
+	}
 	switch (error.response.status) {
 		case 400:
 			Message({

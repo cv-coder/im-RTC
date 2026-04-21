@@ -44,10 +44,10 @@ java -version
 
 ```bash
 # im-platform 配置
-sudo vim /www/wwwroot/lwf-im/config/application-platform.yml
+sudo vim /www/wwwroot/lwf-im/config/im-platform/application-prod.yml
 
 # im-server 配置
-sudo vim /www/wwwroot/lwf-im/config/application-server.yml
+sudo vim /www/wwwroot/lwf-im/config/im-server/application-prod.yml
 ```
 
 **重要配置项：**
@@ -91,15 +91,17 @@ sudo firewall-cmd --reload
 ```
 /www/wwwroot/lwf-im/
 ├── im-platform/
-│   └── im-platform.jar          # 业务平台服务
+│   └── im-platform.jar                 # 业务平台服务
 ├── im-server/
-│   └── im-server.jar            # 消息推送服务
+│   └── im-server.jar                   # 消息推送服务
 ├── config/
-│   ├── application-platform.yml # 平台配置文件
-│   └── application-server.yml   # 推送服务配置文件
+│   ├── im-platform/
+│   │   └── application-prod.yml        # 平台配置文件
+│   └── im-server/
+│       └── application-prod.yml        # 推送服务配置文件
 └── logs/
-  ├── im-platform.log          # 平台日志
-  └── im-server.log            # 推送服务日志
+  ├── im-platform.log                   # 平台日志
+  └── im-server.log                     # 推送服务日志
 ```
 
 ## 查看服务状态
@@ -107,89 +109,74 @@ sudo firewall-cmd --reload
 登录服务器后：
 
 ```bash
-# 查看进程
-ps aux | grep 'im-.*.jar'
+# 查看服务状态
+sudo systemctl status im-platform
+sudo systemctl status im-server
 
-# 查看日志
+# 重启服务
+sudo systemctl restart im-platform
+sudo systemctl restart im-server
+
+# 查看运行日志（systemd）
+sudo journalctl -u im-platform -f
+sudo journalctl -u im-server -f
+
+# 查看文件日志（保留）
 tail -f /www/wwwroot/lwf-im/logs/im-platform.log
 tail -f /www/wwwroot/lwf-im/logs/im-server.log
 
-# 停止服务
-pkill -f 'im-platform.jar'
-pkill -f 'im-server.jar'
+# 临时停止服务
+sudo systemctl stop im-platform
+sudo systemctl stop im-server
 
-# 手动启动
-nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
-  --spring.config.location=/www/wwwroot/lwf-im/config/application-platform.yml \
-  > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
-
-nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
-  --spring.config.location=/www/wwwroot/lwf-im/config/application-server.yml \
-  > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
+# 开机自启
+sudo systemctl enable im-platform
+sudo systemctl enable im-server
 ```
 
 ## 进阶配置
 
-### 使用 systemd 管理服务（推荐）
+### 使用 systemd 管理服务（当前已采用）
 
-创建服务文件：
+仓库已提供 unit 模板：
 
-```bash
-# im-platform 服务
-sudo vim /etc/systemd/system/im-platform.service
-```
+- `.github/workflows/systemd/im-platform.service`
+- `.github/workflows/systemd/im-server.service`
 
-内容：
+部署工作流会自动将其安装到服务器：
 
-```ini
-[Unit]
-Description=Box-IM Platform Service
-After=network.target
+- `/etc/systemd/system/im-platform.service`
+- `/etc/systemd/system/im-server.service`
 
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/www/wwwroot/lwf-im/im-platform
-ExecStart=/usr/bin/java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar --spring.config.location=/www/wwwroot/lwf-im/config/application-platform.yml
-Restart=on-failure
-RestartSec=10
-StandardOutput=append:/www/wwwroot/lwf-im/logs/im-platform.log
-StandardError=append:/www/wwwroot/lwf-im/logs/im-platform.log
-
-[Install]
-WantedBy=multi-user.target
-```
-
-同样创建 `im-server.service`，然后：
+并自动执行：
 
 ```bash
-# 重载 systemd
 sudo systemctl daemon-reload
-
-# 启用开机自启
-sudo systemctl enable im-platform
-sudo systemctl enable im-server
-
-# 启动服务
-sudo systemctl start im-platform
-sudo systemctl start im-server
-
-# 查看状态
-sudo systemctl status im-platform
-sudo systemctl status im-server
+sudo systemctl enable im-platform im-server
+sudo systemctl restart im-platform
+sudo systemctl restart im-server
 ```
 
-修改工作流中的重启命令：
+首次使用前，请确认部署用户具备免交互 sudo 权限（至少能执行 `systemctl` 与安装 unit 文件命令）：
 
-```yaml
-# 重启服务
-- name: Restart services
-  run: |
-    ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-      sudo systemctl restart im-platform
-      sleep 3
-      sudo systemctl restart im-server
-    EOF
+```bash
+sudo -n systemctl --version
+```
+
+若返回非 0，请先配置 sudoers 后再触发部署。
+
+临时回退（仅故障应急）可手动执行：
+
+```bash
+nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
+  --spring.profiles.active=prod \
+  --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-platform/ \
+  > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 < /dev/null &
+
+nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
+  --spring.profiles.active=prod \
+  --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-server/ \
+  > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 < /dev/null &
 ```
 
 ## 故障排查

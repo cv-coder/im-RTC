@@ -1,0 +1,17 @@
+[Unit]
+Description=Box-IM Server Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/www/wwwroot/lwf-im/im-server
+ExecStart=/usr/bin/java -jar /www/wwwroot/lwf-im/im-server/im-server.jar --spring.profiles.active=prod --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-server/
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/www/wwwroot/lwf-im/logs/im-server.log
+StandardError=append:/www/wwwroot/lwf-im/logs/im-server.log
+
+[Install]
+WantedBy=multi-user.target

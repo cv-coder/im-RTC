@@ -1,108 +1,74 @@
 <template>
 	<div class="login-view">
-		<!-- 动态背景气泡 -->
-		<div class="bg-bubbles">
-			<div class="bubble" v-for="n in 8" :key="n" :class="`bubble-${n}`"></div>
-		</div>
-
-		<!-- 背景装饰圆 -->
-		<div class="bg-glow bg-glow-1"></div>
-		<div class="bg-glow bg-glow-2"></div>
-		<div class="bg-glow bg-glow-3"></div>
-
-		<div class="login-wrapper">
-			<!-- 左侧品牌区 -->
-			<div class="brand-panel">
-				<div class="brand-inner">
-					<div class="brand-icon">
+		<div class="login-container">
+			<!-- 左侧品牌展示区 -->
+			<div class="brand-section">
+				<div class="brand-content">
+					<div class="logo-box">
 						<img src="../../public/logo.png" alt="logo" />
 					</div>
-					<h1 class="brand-title">LWF<span>IM</span></h1>
-					<p class="brand-tagline">随时随地，连接你我</p>
-					<div class="brand-features">
-						<div class="feature-item">
-							<span class="feature-dot"></span>
-							<span>实时消息推送</span>
-						</div>
-						<div class="feature-item">
-							<span class="feature-dot"></span>
-							<span>音视频通话</span>
-						</div>
-						<div class="feature-item">
-							<span class="feature-dot"></span>
-							<span>群组聊天</span>
-						</div>
-					</div>
+					<h1 class="brand-name">LWF 协同通信平台</h1>
+					<p class="brand-desc">安全 · 高效 · 稳定 · 可靠</p>
+					<ul class="feature-list">
+						<li><i class="el-icon-check"></i> 企业级即时通讯</li>
+						<li><i class="el-icon-check"></i> 全端多端消息同步</li>
+						<li><i class="el-icon-check"></i> 高清音视频会议</li>
+					</ul>
 				</div>
+				<!-- 底部装饰图形 -->
+				<div class="brand-bg-decor"></div>
 			</div>
 
-			<!-- 右侧登录卡片 -->
-			<div class="card-panel">
-				<div class="login-card">
-					<div class="card-header">
-						<h2 class="card-title">欢迎回来</h2>
-						<p class="card-subtitle">登录您的账号继续使用</p>
-					</div>
-
-					<el-form
-						class="login-form"
-						:model="loginForm"
-						:rules="rules"
-						ref="loginForm"
-						@keyup.enter.native="submitForm('loginForm')"
-					>
-						<el-form-item prop="userName">
-							<div class="input-wrapper">
-								<span class="input-icon">
-									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-										<circle cx="12" cy="7" r="4"/>
-									</svg>
-								</span>
-								<el-input
-									v-model="loginForm.userName"
-									autocomplete="off"
-									placeholder="请输入用户名"
-								></el-input>
-							</div>
-						</el-form-item>
-
-						<el-form-item prop="password">
-							<div class="input-wrapper">
-								<span class="input-icon">
-									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-										<path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-									</svg>
-								</span>
-								<el-input
-									type="password"
-									v-model="loginForm.password"
-									autocomplete="off"
-									placeholder="请输入密码"
-									show-password
-								></el-input>
-							</div>
-						</el-form-item>
-
-						<el-form-item>
-							<button class="login-btn" @click.prevent="submitForm('loginForm')" :class="{ loading: isLoading }">
-								<span class="btn-text">{{ isLoading ? '登录中...' : '立即登录' }}</span>
-								<span class="btn-arrow">
-									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-										<line x1="5" y1="12" x2="19" y2="12"/>
-										<polyline points="12 5 19 12 12 19"/>
-									</svg>
-								</span>
-							</button>
-						</el-form-item>
-					</el-form>
-
-					<div class="card-footer">
-						<span>还没有账号？</span>
-						<router-link to="/register" class="register-link">立即注册</router-link>
-					</div>
+			<!-- 右侧登录表单区 -->
+			<div class="form-section">
+				<div class="form-header">
+					<h2>账号登录</h2>
+					<p>欢迎使用 LWF 协同通信平台</p>
 				</div>
+
+				<el-form
+					class="login-form"
+					:model="loginForm"
+					:rules="rules"
+					ref="loginForm"
+					@keyup.enter.native="submitForm('loginForm')"
+				>
+					<el-form-item prop="userName">
+						<el-input
+							v-model="loginForm.userName"
+							autocomplete="off"
+							placeholder="请输入账号"
+							prefix-icon="el-icon-user"
+						></el-input>
+					</el-form-item>
+
+					<el-form-item prop="password">
+						<el-input
+							type="password"
+							v-model="loginForm.password"
+							autocomplete="off"
+							placeholder="请输入密码"
+							prefix-icon="el-icon-lock"
+							show-password
+						></el-input>
+					</el-form-item>
+
+					<div class="form-options">
+						<el-checkbox v-model="rememberMe">记住账号</el-checkbox>
+						<router-link to="/register" class="link-btn">注册账号</router-link>
+					</div>
+
+					<el-form-item>
+						<el-button 
+							type="primary" 
+							class="submit-btn" 
+							@click.prevent="submitForm('loginForm')" 
+							:loading="isLoading"
+						>
+							{{ isLoading ? '正在登录...' : '登 录' }}
+						</el-button>
+					</el-form-item>
+				</el-form>
 			</div>
 		</div>
 
@@ -118,28 +84,17 @@ export default {
 		Icp
 	},
 	data() {
-		var checkUsername = (rule, value, callback) => {
-			if (!value) {
-				return callback(new Error('请输入用户名'));
-			}
-			callback();
-		};
-		var checkPassword = (rule, value, callback) => {
-			if (value === '') {
-				callback(new Error('请输入密码'));
-			}
-			callback();
-		};
 		return {
 			isLoading: false,
+			rememberMe: false,
 			loginForm: {
 				terminal: this.$enums.TERMINAL_TYPE.WEB,
 				userName: '',
 				password: ''
 			},
 			rules: {
-				userName: [{ validator: checkUsername, trigger: 'blur' }],
-				password: [{ validator: checkPassword, trigger: 'blur' }]
+				userName: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+				password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 			}
 		};
 	},
@@ -154,8 +109,13 @@ export default {
 						data: this.loginForm
 					})
 					.then((data) => {
-						this.setCookie('username', this.loginForm.userName);
-						this.setCookie('password', this.loginForm.password);
+						if (this.rememberMe) {
+							this.setCookie('username', this.loginForm.userName);
+							this.setCookie('password', this.loginForm.password);
+						} else {
+							this.setCookie('username', '');
+							this.setCookie('password', '');
+						}
 						sessionStorage.setItem("accessToken", data.accessToken);
 						sessionStorage.setItem("refreshToken", data.refreshToken);
 						this.$message.success("登录成功");
@@ -167,466 +127,265 @@ export default {
 				}
 			});
 		},
-		resetForm(formName) {
-			this.$refs[formName].resetFields();
-		},
 		getCookie(name) {
 			let reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
 			let arr = document.cookie.match(reg);
-			if (arr) {
-				return unescape(arr[2]);
-			}
-			return '';
+			return arr ? unescape(arr[2]) : '';
 		},
 		setCookie(name, value) {
-			document.cookie = name + "=" + escape(value);
+			let days = 7;
+			let exp = new Date();
+			exp.setTime(exp.getTime() + days * 24 * 60 * 60 * 1000);
+			document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString() + ";path=/";
 		}
 	},
 	mounted() {
-		this.loginForm.userName = this.getCookie("username");
-		this.loginForm.password = this.getCookie("password");
+		let savedUser = this.getCookie("username");
+		if (savedUser) {
+			this.loginForm.userName = savedUser;
+			this.loginForm.password = this.getCookie("password");
+			this.rememberMe = true;
+		}
 	}
 }
 </script>
 
 <style scoped lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+/* 政企简约风配蓝白色调 */
+$primary-color: #1890ff;
+$primary-hover: #40a9ff;
+$bg-color: #f0f2f5;
+$text-main: #333333;
+$text-secondary: #666666;
+$text-muted: #999999;
+$border-color: #dcdfe6;
 
-/* ===== 全局变量 ===== */
 .login-view {
-	--primary: #6C63FF;
-	--primary-light: #8B85FF;
-	--primary-dark: #5549E8;
-	--accent: #FF6584;
-	--bg-deep: #0F0E1A;
-	--bg-card: rgba(255,255,255,0.06);
-	--glass-border: rgba(255,255,255,0.12);
-	--text-primary: #FFFFFF;
-	--text-secondary: rgba(255,255,255,0.55);
-	--text-muted: rgba(255,255,255,0.35);
-
-	font-family: 'Nunito', -apple-system, sans-serif;
-	width: 100%;
-	height: 100%;
-	min-height: 100vh;
-	background: var(--bg-deep);
-	overflow: hidden;
-	position: relative;
+	width: 100vw;
+	height: 100vh;
+	background-color: $bg-color;
+	background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%231890ff" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-
-/* ===== 背景光晕 ===== */
-.bg-glow {
-	position: absolute;
-	border-radius: 50%;
-	filter: blur(80px);
-	pointer-events: none;
-	animation: glow-float 8s ease-in-out infinite alternate;
-}
-.bg-glow-1 {
-	width: 500px; height: 500px;
-	background: radial-gradient(circle, rgba(108,99,255,0.35) 0%, transparent 70%);
-	top: -100px; left: -100px;
-	animation-duration: 10s;
-}
-.bg-glow-2 {
-	width: 400px; height: 400px;
-	background: radial-gradient(circle, rgba(255,101,132,0.25) 0%, transparent 70%);
-	bottom: -80px; right: 5%;
-	animation-duration: 7s;
-	animation-delay: -3s;
-}
-.bg-glow-3 {
-	width: 300px; height: 300px;
-	background: radial-gradient(circle, rgba(67,205,255,0.2) 0%, transparent 70%);
-	top: 40%; right: 30%;
-	animation-duration: 12s;
-	animation-delay: -6s;
-}
-@keyframes glow-float {
-	0%   { transform: translate(0, 0) scale(1); }
-	100% { transform: translate(30px, 40px) scale(1.1); }
-}
-
-/* ===== 浮动气泡 ===== */
-.bg-bubbles {
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	overflow: hidden;
-}
-.bubble {
-	position: absolute;
-	border-radius: 50%;
-	background: rgba(108,99,255,0.08);
-	border: 1px solid rgba(108,99,255,0.15);
-	animation: bubble-rise linear infinite;
-}
-@for $i from 1 through 8 {
-	.bubble-#{$i} {
-		$size: (30 + $i * 15) * 1px;
-		width: $size; height: $size;
-		left: ($i * 11) * 1%;
-		bottom: -200px;
-		animation-duration: (10 + $i * 3) * 1s;
-		animation-delay: ($i * -2) * 1s;
-	}
-}
-@keyframes bubble-rise {
-	0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
-	10%  { opacity: 1; }
-	90%  { opacity: 0.6; }
-	100% { transform: translateY(-110vh) rotate(720deg); opacity: 0; }
-}
-
-/* ===== 主布局 ===== */
-.login-wrapper {
 	position: relative;
-	z-index: 10;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.login-container {
 	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0;
 	width: 900px;
-	max-width: 95vw;
-	min-height: 520px;
-	border-radius: 28px;
+	height: 500px;
+	background: #ffffff;
+	border-radius: 8px;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 	overflow: hidden;
-	box-shadow:
-		0 40px 80px rgba(0,0,0,0.5),
-		0 0 0 1px var(--glass-border),
-		inset 0 1px 0 rgba(255,255,255,0.1);
-	animation: card-enter 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes card-enter {
-	from { opacity: 0; transform: translateY(40px) scale(0.96); }
-	to   { opacity: 1; transform: translateY(0) scale(1); }
+	z-index: 10;
 }
 
-/* ===== 左侧品牌面板 ===== */
-.brand-panel {
+/* 左侧品牌区 */
+.brand-section {
 	flex: 1;
-	background: linear-gradient(145deg, rgba(108,99,255,0.9) 0%, rgba(67,56,202,0.95) 100%);
-	padding: 60px 50px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	background: linear-gradient(135deg, #0052d9 0%, $primary-color 100%);
+	color: #ffffff;
 	position: relative;
+	padding: 50px 40px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	overflow: hidden;
+}
 
-	&::before {
-		content: '';
-		position: absolute;
-		top: -60px; right: -60px;
-		width: 250px; height: 250px;
-		background: rgba(255,255,255,0.08);
-		border-radius: 50%;
+.brand-content {
+	position: relative;
+	z-index: 2;
+}
+
+.logo-box {
+	margin-bottom: 24px;
+	img {
+		width: 54px;
+		height: 54px;
+		background: #ffffff;
+		border-radius: 8px;
+		padding: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 	}
+}
+
+.brand-name {
+	font-size: 28px;
+	font-weight: 600;
+	margin: 0 0 12px;
+	letter-spacing: 1px;
+}
+
+.brand-desc {
+	font-size: 16px;
+	opacity: 0.9;
+	margin: 0 0 40px;
+	letter-spacing: 2px;
+}
+
+.feature-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	
+	li {
+		font-size: 15px;
+		margin-bottom: 16px;
+		display: flex;
+		align-items: center;
+		opacity: 0.85;
+
+		i {
+			margin-right: 10px;
+			font-size: 18px;
+			font-weight: bold;
+		}
+	}
+}
+
+.brand-bg-decor {
+	position: absolute;
+	right: -50px;
+	bottom: -50px;
+	width: 300px;
+	height: 300px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 50%;
+	z-index: 1;
+
 	&::after {
 		content: '';
 		position: absolute;
-		bottom: -80px; left: -40px;
-		width: 300px; height: 300px;
-		background: rgba(255,255,255,0.05);
+		top: -40px;
+		left: -40px;
+		width: 200px;
+		height: 200px;
+		background: rgba(255, 255, 255, 0.05);
 		border-radius: 50%;
 	}
 }
-.brand-inner {
-	position: relative;
-	z-index: 2;
-	text-align: center;
-}
-.brand-icon {
-	width: 72px; height: 72px;
-	background: rgba(255,255,255,0.2);
-	border-radius: 20px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin: 0 auto 24px;
-	backdrop-filter: blur(10px);
-	border: 1px solid rgba(255,255,255,0.3);
-	box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 
-	img {
-		width: 44px; height: 44px;
-		object-fit: contain;
-		filter: brightness(10);
-	}
-}
-.brand-title {
-	font-size: 48px;
-	font-weight: 900;
-	color: #fff;
-	letter-spacing: -1px;
-	margin: 0 0 10px;
-	line-height: 1;
-
-	span {
-		color: rgba(255,255,255,0.7);
-		font-weight: 400;
-	}
-}
-.brand-tagline {
-	color: rgba(255,255,255,0.8);
-	font-size: 15px;
-	font-weight: 600;
-	letter-spacing: 3px;
-	margin: 0 0 40px;
-	text-transform: uppercase;
-}
-.brand-features {
+/* 右侧表单区 */
+.form-section {
+	width: 420px;
+	padding: 50px;
 	display: flex;
 	flex-direction: column;
-	gap: 14px;
-	text-align: left;
-}
-.feature-item {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	color: rgba(255,255,255,0.9);
-	font-size: 14px;
-	font-weight: 600;
-	animation: feature-slide 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-
-	&:nth-child(1) { animation-delay: 0.3s; }
-	&:nth-child(2) { animation-delay: 0.45s; }
-	&:nth-child(3) { animation-delay: 0.6s; }
-}
-@keyframes feature-slide {
-	from { opacity: 0; transform: translateX(-20px); }
-	to   { opacity: 1; transform: translateX(0); }
-}
-.feature-dot {
-	width: 8px; height: 8px;
-	background: rgba(255,255,255,0.9);
-	border-radius: 50%;
-	flex-shrink: 0;
-	box-shadow: 0 0 8px rgba(255,255,255,0.6);
-}
-
-/* ===== 右侧卡片 ===== */
-.card-panel {
-	flex: 1;
-	background: rgba(20, 19, 35, 0.95);
-	backdrop-filter: blur(20px);
-	padding: 60px 50px;
-	display: flex;
-	align-items: center;
 	justify-content: center;
-}
-.login-card {
-	width: 100%;
-	max-width: 320px;
-}
-.card-header {
-	margin-bottom: 36px;
-	animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
-}
-.card-title {
-	font-size: 30px;
-	font-weight: 800;
-	color: var(--text-primary);
-	margin: 0 0 8px;
-	letter-spacing: -0.5px;
-}
-.card-subtitle {
-	color: var(--text-secondary);
-	font-size: 14px;
-	font-weight: 600;
-	margin: 0;
-}
-@keyframes fade-up {
-	from { opacity: 0; transform: translateY(16px); }
-	to   { opacity: 1; transform: translateY(0); }
+	background: #ffffff;
 }
 
-/* ===== 表单样式覆盖 ===== */
+.form-header {
+	margin-bottom: 35px;
+	
+	h2 {
+		font-size: 24px;
+		color: $text-main;
+		margin: 0 0 8px;
+		font-weight: 500;
+	}
+	
+	p {
+		font-size: 14px;
+		color: $text-muted;
+		margin: 0;
+	}
+}
+
 .login-form {
-	animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
-
-	::v-deep .el-form-item {
-		margin-bottom: 20px;
-	}
-	::v-deep .el-form-item__content {
-		line-height: normal;
-	}
-	::v-deep .el-form-item__error {
-		color: var(--accent);
-		font-size: 12px;
-		padding-top: 4px;
-	}
 	::v-deep .el-input__inner {
-		background: rgba(255,255,255,0.05) !important;
-		border: 1.5px solid var(--glass-border) !important;
-		border-radius: 12px !important;
-		color: var(--text-primary) !important;
-		height: 50px !important;
-		padding: 0 16px 0 48px !important;
-		font-size: 14px !important;
-		font-family: 'Nunito', sans-serif !important;
-		font-weight: 600 !important;
-		transition: all 0.25s ease !important;
-
-		&::placeholder {
-			color: var(--text-muted) !important;
-			font-weight: 500 !important;
-		}
+		height: 44px;
+		line-height: 44px;
+		border-radius: 4px;
+		border: 1px solid $border-color;
+		transition: border-color 0.2s;
+		
 		&:focus {
-			background: rgba(108,99,255,0.08) !important;
-			border-color: var(--primary-light) !important;
-			box-shadow: 0 0 0 3px rgba(108,99,255,0.15) !important;
+			border-color: $primary-color;
 		}
 	}
-	::v-deep .el-input__suffix {
-		right: 12px;
-		.el-input__suffix-inner {
-			display: flex;
-			align-items: center;
-			height: 100%;
-		}
-		.el-icon-view, .el-input__icon {
-			color: var(--text-muted) !important;
-			font-size: 18px;
-			cursor: pointer;
-			transition: color 0.2s;
-			&:hover { color: var(--primary-light) !important; }
+
+	::v-deep .el-input__prefix {
+		left: 10px;
+		i {
+			line-height: 44px;
+			font-size: 16px;
 		}
 	}
 }
 
-/* ===== 输入框包裹 ===== */
-.input-wrapper {
-	position: relative;
-
-	.input-icon {
-		position: absolute;
-		left: 14px;
-		top: 50%;
-		transform: translateY(-50%);
-		z-index: 10;
-		width: 20px; height: 20px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		pointer-events: none;
-
-		svg {
-			width: 18px; height: 18px;
-			color: var(--text-muted);
-			transition: color 0.25s;
-		}
-	}
-
-	&:focus-within .input-icon svg {
-		color: var(--primary-light);
-	}
-}
-
-/* ===== 登录按钮 ===== */
-.login-btn {
-	width: 100%;
-	height: 52px;
-	background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-	border: none;
-	border-radius: 14px;
-	color: #fff;
-	font-size: 15px;
-	font-weight: 800;
-	font-family: 'Nunito', sans-serif;
-	letter-spacing: 0.5px;
-	cursor: pointer;
+.form-options {
 	display: flex;
+	justify-content: space-between;
 	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-	box-shadow: 0 8px 24px rgba(108,99,255,0.4);
-	position: relative;
-	overflow: hidden;
-	margin-top: 8px;
+	margin-bottom: 25px;
+	margin-top: -10px;
 
-	&::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-		opacity: 0;
-		transition: opacity 0.3s;
-	}
-	&:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 12px 32px rgba(108,99,255,0.55);
-		&::before { opacity: 1; }
-		.btn-arrow { transform: translateX(4px); }
-	}
-	&:active {
-		transform: translateY(0);
-		box-shadow: 0 4px 12px rgba(108,99,255,0.4);
-	}
-	&.loading {
-		opacity: 0.75;
-		cursor: not-allowed;
-		pointer-events: none;
-	}
-}
-.btn-text { flex: 1; text-align: center; }
-.btn-arrow {
-	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-	display: flex;
-	align-items: center;
-	svg {
-		width: 18px; height: 18px;
+	::v-deep .el-checkbox__label {
+		color: $text-secondary;
 	}
 }
 
-/* ===== 页脚 ===== */
-.card-footer {
-	margin-top: 28px;
-	text-align: center;
-	color: var(--text-muted);
-	font-size: 13px;
-	font-weight: 600;
-	animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
-}
-.register-link {
-	color: var(--primary-light);
+.link-btn {
+	color: $primary-color;
 	text-decoration: none;
-	font-weight: 700;
-	margin-left: 6px;
+	font-size: 14px;
 	transition: color 0.2s;
 
-	&:hover { color: #fff; }
+	&:hover {
+		color: $primary-hover;
+	}
 }
 
-/* ===== ICP 备案 ===== */
+.submit-btn {
+	width: 100%;
+	height: 44px;
+	font-size: 16px;
+	border-radius: 4px;
+	background-color: $primary-color;
+	border-color: $primary-color;
+	transition: all 0.2s;
+	letter-spacing: 4px;
+
+	&:hover, &:focus {
+		background-color: $primary-hover;
+		border-color: $primary-hover;
+	}
+}
+
+/* 备案信息覆盖 */
 ::v-deep .icp {
 	position: absolute;
-	bottom: 16px;
-	left: 50%;
-	transform: translateX(-50%);
-	color: rgba(255,255,255,0.2) !important;
+	bottom: 20px;
+	width: 100%;
+	text-align: center;
+	color: $text-muted !important;
 	font-size: 12px;
-	z-index: 20;
-	white-space: nowrap;
+	a {
+		color: $text-muted !important;
+		&:hover {
+			color: $primary-color !important;
+		}
+	}
 }
 
-/* ===== 响应式 ===== */
-@media (max-width: 700px) {
-	.login-wrapper {
+/* 响应式调整 */
+@media (max-width: 950px) {
+	.login-container {
+		width: 90%;
+		max-width: 420px;
 		flex-direction: column;
-		width: 92vw;
-		min-height: unset;
+		height: auto;
 	}
-	.brand-panel {
-		padding: 40px 30px 30px;
-		.brand-features { display: none; }
-		.brand-tagline { margin-bottom: 0; }
+	.brand-section {
+		display: none; // 移动端隐藏左侧
 	}
-	.card-panel {
+	.form-section {
+		width: 100%;
 		padding: 40px 30px;
 	}
 }

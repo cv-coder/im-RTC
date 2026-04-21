@@ -79,73 +79,84 @@ jobs:
 
           echo "jars deployed"
 
-      # 第八步：重启服务
-      # 修复点1：heredoc 内不能有前置空格，否则 << 'EOF' 无法识别结束标记导致 ssh 挂起
-      # 修复点2：nohup 后台进程用 disown 彻底脱离 ssh 会话，避免 ssh 退出时 SIGHUP 杀死子进程
-      # 修复点3：启动命令只需 --spring.profiles.active=prod，Spring Boot 会自动加载
-      #          jar 外同目录的 application-prod.yml（Spring Boot 外部配置优先级规则）
-      - name: Restart services
+      # 第八步：检查服务器 systemd 与 sudo 权限
+      - name: Preflight systemd
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
+            set -e
+            command -v systemctl >/dev/null
+            sudo -n systemctl --version >/dev/null
+            echo "systemd and sudo checks passed"
+          EOF
+
+      # 第九步：上传 systemd unit 文件
+      - name: Upload systemd unit files
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            .github/workflows/systemd/im-platform.service \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/im-platform.service
+
+          scp -o StrictHostKeyChecking=no \
+            .github/workflows/systemd/im-server.service \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/im-server.service
+
+      # 第十步：安装 unit 并重启服务
+      - name: Install units and restart services
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
+            set -e
+            sudo install -m 644 /tmp/im-platform.service /etc/systemd/system/im-platform.service
+            sudo install -m 644 /tmp/im-server.service /etc/systemd/system/im-server.service
+            sudo systemctl daemon-reload
+            sudo systemctl enable im-platform im-server
+            sudo systemctl restart im-platform
+            sleep 3
+            sudo systemctl restart im-server
+            sudo systemctl show im-platform -p MainPID
+            sudo systemctl show im-server -p MainPID
+          EOF
+
+      # 第十一步：健康检查
+      - name: Health check
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
             set -e
 
-            PID_DIR=/www/wwwroot/lwf-im/pids
-            mkdir -p "$PID_DIR"
+            sudo systemctl is-active --quiet im-platform
+            sudo systemctl is-active --quiet im-server
 
-            # 通过 pid 文件停止旧服务，避免 pkill 跨用户权限问题
-            for SVC in im-platform im-server; do
-              PID_FILE="$PID_DIR/$SVC.pid"
-              if [ -f "$PID_FILE" ]; then
-                OLD_PID=$(cat "$PID_FILE")
-                if kill -0 "$OLD_PID" 2>/dev/null; then
-                  echo "Stopping $SVC (pid=$OLD_PID)..."
-                  kill "$OLD_PID"
-                  # 等待进程真正退出（最多 15 秒）
-                  for i in $(seq 1 15); do
-                    kill -0 "$OLD_PID" 2>/dev/null || break
-                    sleep 1
-                  done
-                  # 仍未退出则强杀
-                  kill -0 "$OLD_PID" 2>/dev/null && kill -9 "$OLD_PID" || true
-                fi
-                rm -f "$PID_FILE"
-              fi
-            done
+            echo "=== im-platform status ==="
+            sudo systemctl status im-platform --no-pager
+            echo "=== im-server status ==="
+            sudo systemctl status im-server --no-pager
 
-            # 启动 im-platform，记录 pid
-            nohup java -jar /www/wwwroot/lwf-im/im-platform/im-platform.jar \
-              --spring.profiles.active=prod \
-              --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-platform/ \
-              > /www/wwwroot/lwf-im/logs/im-platform.log 2>&1 &
-            echo $! > "$PID_DIR/im-platform.pid"
-            disown
-
-            sleep 8
-
-            # 启动 im-server，记录 pid
-            nohup java -jar /www/wwwroot/lwf-im/im-server/im-server.jar \
-              --spring.profiles.active=prod \
-              --spring.config.additional-location=file:/www/wwwroot/lwf-im/config/im-server/ \
-              > /www/wwwroot/lwf-im/logs/im-server.log 2>&1 &
-            echo $! > "$PID_DIR/im-server.pid"
-            disown
-
-            echo "Services restarted (platform pid=$(cat $PID_DIR/im-platform.pid), server pid=$(cat $PID_DIR/im-server.pid))"
+            echo "=== im-platform recent log ==="
+            sudo journalctl -u im-platform -n 80 --no-pager
+            echo "=== im-server recent log ==="
+            sudo journalctl -u im-server -n 80 --no-pager
           EOF
 
-      # 第九步：健康检查（等待足够时间让 Spring Boot 完成启动）
-      - name: Health check
+      # 第十二步：失败时输出日志辅助排查
+      - name: Collect failure logs
+        if: failure()
         run: |
-          sleep 20
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
-            echo "=== Process check ==="
-            ps aux | grep -E 'im-(platform|server)\.jar' | grep -v grep \
-              && echo "✅ Services are running" \
-              || echo "❌ WARNING: Services may not be running"
+            echo "=== im-platform status (failure) ==="
+            sudo systemctl status im-platform --no-pager || true
+            echo "=== im-server status (failure) ==="
+            sudo systemctl status im-server --no-pager || true
+            echo "=== im-platform journal (failure) ==="
+            sudo journalctl -u im-platform -n 120 --no-pager || true
+            echo "=== im-server journal (failure) ==="
+            sudo journalctl -u im-server -n 120 --no-pager || true
+          EOF
 
-            echo "=== im-platform log tail ==="
+      # 第十三步：保留文件日志尾部输出（兼容历史排查习惯）
+      - name: Tail file logs
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} bash << 'EOF'
+            echo "=== im-platform file log tail ==="
             tail -20 /www/wwwroot/lwf-im/logs/im-platform.log || true
-
-            echo "=== im-server log tail ==="
+            echo "=== im-server file log tail ==="
             tail -20 /www/wwwroot/lwf-im/logs/im-server.log || true
           EOF
